@@ -1,0 +1,86 @@
+---
+title: "Development Thoughts"
+output: html_notebook
+---
+
+# Processing Hurdles
+
+## Accessing Praat
+
+There are a number of packages for reading Praat objects, but as far as I can tell, just one for actually accessing Praat itself. 
+
+- https://github.com/usagi5886/PraatR/
+- http://www2.kobe-u.ac.jp/~albin/praatr/index.html
+
+
+It is not on Cran though... 
+
+Perhaps I'll need to roll my own praat access. This would allow me to utilize my preferred package for reading & organizing textgrids.
+
+## Procesing Audio
+
+`tuneR` has a readWave function that allows you to specifiy start and end times in s. I'd still be reading a portion of the wav file *into* R, and then writing it *back* to a tmp file to be processed by Praat.
+
+That might not be any faster or better than calling SoX from R. I'll already need some kind of message to user to install & put Praat in their path. But, doing it entirely in R would streamlines dependencies just a little bit.
+
+## Vowel class recoding
+
+*This* is actually a lot of work to re-implement. The smoothness of how this will go will depend entirely on how nicely the praat textgrid package I go with works.
+
+# Imagined interface:
+
+## Input
+
+- data frame,
+    -TextGrid pats, Wav, speaker-specific parameterization (vowel system, max formant)
+- Additional options
+    - tracks output
+    - measurement method
+    - min vowel duration (etc.)
+    
+I'll use `/ /` to indicate intended non-standard evaluation
+    
+```
+fave_extract(df, textgrids = /tgcolumn/,
+                 wavs = /wavcolumn/,
+                 vowel_system = /vowel_system/,
+                 max_formant = /max_formant/,
+                 prediction_method = "mahalanobis",
+                 measurement_point = "fave",
+                 min_dur = 0.005,
+                 only_stressed = T,
+                 remeasure = T,
+                 no_stop_words = F,
+                 tracks = T,
+                 n_smoothing = 12,
+                 windowSize = 0.025,
+                 mean_covs = NULL,
+                 )
+```
+
+`NULL` for `mean_covs` will use ANAE values. User provided value for `mean_covs` should be a dataframe with
+
+- A column for `vclass`
+- A list column of mean vectors
+- A list column of covariance matrices
+
+User provided 
+
+## Output
+
+A data frame with columns for
+
+- filestem
+- one column for each parameter used for running FAVE
+- a list column with the formant point estimates
+- a list column with the formant track estimates
+
+
+# Development Sketch
+
+Initial stages:
+
+1. Experiment with which TextGrid package to use
+2. Experiment with reading/writing audio with tuneR
+3. Try to get Praat to do something
+4. Figure out how to do nse
