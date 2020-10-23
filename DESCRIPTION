@@ -1,0 +1,10 @@
+Package: faver
+Type: Package
+Title: Vowel Formant Extraction
+Version: 0.0.0
+Author: Josef Fruehwald
+Maintainer: Josef Fruehwald <jofrhwld@gmail.com>
+Description: This will very very maybe one day do FAVE-extract in R.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
