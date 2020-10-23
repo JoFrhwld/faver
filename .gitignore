@@ -4,3 +4,4 @@
 .Ruserdata
 *.wav
 .DS_Store
+*.nb.html
