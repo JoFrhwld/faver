@@ -1,0 +1,100 @@
+---
+title: "Textgrid Packages"
+output: html_notebook
+---
+
+# Options
+
+## `readtextgrid`
+
+- url:https://github.com/tjmahr/readtextgrid
+- pros
+    - recently developed
+    - built with tidyverse in mind
+- cons
+    - actually, it takes a looooong time to read these textgrids!
+    - really really long?
+
+```{r}
+library(readtextgrid)
+library(tidyverse)
+```
+
+```{r}
+tg <- read_textgrid("../extdata/dod/dod.TextGrid")
+```
+
+```{r}
+tg2 <- read_textgrid("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid")
+```
+
+```{r}
+tg2
+```
+
+
+```{r}
+tg
+```
+
+```{r}
+words <- tg %>% filter(tier_name == "IVR - words") %>%
+  rename(word_num = annotation_num,
+         word_text = text)
+phones <- tg %>% filter(tier_name == "IVR - phones") %>%
+    rename(phone_num = annotation_num,
+           phone_text = text)
+```
+
+
+```{r}
+phones %>%
+  left_join(words %>% select(xmin, word_text, word_num)) %>%
+  fill(word_text, word_num)
+```
+
+
+## `rPraat`
+
+
+- url: https://github.com/bbTomas/rPraat/
+- pros
+    - faster
+- cons
+    - will require more work to get to an acceptable dataframe.
+
+```{r}
+library(rPraat)
+library(tidyverse)
+```
+
+```{r}
+tg <- tg.read("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid")
+```
+
+```{r}
+tg %>% map(as.data.frame)
+```
+
+
+## `textgRid`
+- url: https://github.com/patrickreidy/textgRid
+- pros
+    - faster
+- cons
+    - cran version broken, github version ~stable~ broken
+    - difficult to get into dataframe!
+
+```{r}
+library(textgRid)
+library(tidyverse)
+```
+
+```{r}
+tg <- TextGrid("../extdata/dod/dod.TextGrid")
+```
+
+```{r}
+str(tg$`IVR - words`)
+```
+
