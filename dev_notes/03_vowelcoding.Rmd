@@ -49,91 +49,17 @@ full_vclass %>%
   select(word_label, pre_phone_word, phone_label, post_phone_word, vclass) %>% View()
 ```
 
-
-
 ```{r}
 full_vclass %>%
-  select(-stress) %>%
-  group_by(speakerid, word_n) %>%
-  filter(any(vclass == "æ")) %>%
-  enrich_syl() -> ae_syll
+  phila_ae() -> ae_coded
+```
 
-
-ae_syll %>%
-  group_by(speakerid, word_n) %>%
-  mutate(post_post_phone_word = lead(phone_label, n = 2),
-         full_trans = str_c(phone_label, collapse = " "),
-         new_vclass = case_when(vclass == "æ" &
-                               toupper(word_label) %in% c('AND', "AN'", 'AM', 'AN', 'THAN',
-                                                 'RAN', 'SWAM', 'BEGAN', 'CAN', 'FAMILY', 
-                                                 'FAMILIES', "FAMILY'S", 'JANUARY', 'ANNUAL',
-                                                 'ANNE', "ANNE'S", 'ANNIE', "ANNIE'S", 
-                                                 'JOANNE', 'GAS', 'GASES', 'EXAM', 'EXAMS', 
-                                                 "EXAM'S", 'ALAS', 'ASPIRIN',
-                                                 'CATHOLIC', 'CATHOLICS', 'CAMERA',
-                                                 'MATH') ~ "æ*",
-                             vclass == "æ" & 
-                               toupper(word_label) %in% c('MAD', 'BAD', 'GLAD', 'MADLY', 
-                                                          'BADLY', 'GLADLY', 'MADDER', 
-                                                          'BADDER', 'GLADDER', 'MADDEST', 
-                                                          'BADDEST', 'GLADDEST', 'MADNESS', 
-                                                          'GLADNESS', 'BADNESS', 'MADHOUSE') ~ "æh",
-                             vclass == "æ" &
-                               grepl("GRAND", toupper(word_label)) ~ "æh",
-                             vclass == "æ" &
-                               post_phone_word == "S" & post_post_phone_word %in% c("P", "T", "K") &
-                               !grepl("*AS.IN[G']$", toupper(word_label)) ~ "æ*",
-                             vclass == "æ" &
-                               post_phone_word == "L" ~ "æ*",
-                             vclass == "æ" &
-                               grepl("AE1 (M |N |S |TH |F )(IH0|AH0) (NG|N|Z)$", full_trans) ~ "æh",
-                             vclass == "æ" & 
-                               post_phone_word %in% c('M', 'N', 'S', 'TH', 'F') &
-                               post_syl_part == "coda"~ "æh",
-                             TRUE ~ vclass)) ->ae_coding
-
-ae_coding %>%
-  select(speakerid, word_n, phone_n, new_vclass) ->ae_coded
-
-
-full_vclass %>%
-  left_join(ae_coded) %>%
-  mutate(vclass = case_when(!is.na(new_vclass) & new_vclass != vclass ~ new_vclass,
-                         TRUE ~ vclass)) %>%
-  select(-new_vclass) -> ae_coded
+```{r}
+ae_coded %>%
+  filter(vclass %in% c("æ", "æ*", "æh")) %>% 
+  count(vclass, word_label) 
 ```
 
 
-```{r}
-enriched_df %>%
-  mutate(cmu = gsub("[0-9]", "", phone_label)) %>%
-  left_join(a2p()) %>%
-  mutate(vclass = case_when(cmu == "AH" & syl_stress == 0 ~ "*",
-                         vclass %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(vclass, "F"), 
-                         vclass == "ay" & post_phone_word %in% (phone_features() %>% 
-                                                               filter(cons_voiced == "-") %>% 
-                                                               pull(phone)) ~ "ay0",
-                         cmu == "UW" & post_phone_word %in% (phone_features() %>% 
-                                                               filter(cons_place == "alveolar") %>% 
-                                                               pull(phone)) ~ "Tuw",
-                         cmu %in% c("IY", "IH") & post_phone_word == "R" ~ "iyr",
-                         cmu %in% c("EY") & post_phone_word == "R" ~ "eyr",
-                         cmu %in% c("AA") & post_phone_word == "R" ~ "ahr",
-                         cmu %in% c("AO", "OW") & post_phone_word == "R" ~ "owr",
-                         cmu %in% c("UH", "UW") & post_phone_word == "R" ~ "uwr",
-                         cmu %in% "AA" & toupper(word_label) %in% c('FATHER', 'FATHER', "FATHER'S", 
-                                                                     'MA', "MA'S", 'PA', "PA'S", 
-                                                                     'SPA', 'SPAS', "SPA'S",
-                                                                     'CHICAGO', "CHICAGO'S", 'PASTA', 
-                                                                     'BRA', 'BRAS', "BRA'S", 'UTAH', 
-                                                                     'TACO', 'TACOS', "TACO'S",
-                                                                     'GRANDFATHER', 'GRANDFATHERS',
-                                                                     "GRANDFATHER'S", 'CALM', 'CALMER',
-                                                                     'CALMEST', 'CALMING', 'CALMED', 
-                                                                     'CALMS', 'PALM', 'PALMS', 'BALM',
-                                                                     'BALMS', 'ALMOND', 'ALMONDS', 
-                                                                     'LAGER', 'SALAMI', 'NIRVANA', 
-                                                                     'KARATE', 'AH') ~ "ah",
-                         TRUE ~ vclass))
-```
+
 

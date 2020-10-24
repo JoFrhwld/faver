@@ -130,7 +130,7 @@ basic_vclass <- function(df){
   df %>%
     mutate(cmu = gsub("[0-9]", "", phone_label),
            stress = gsub(".*([0-9])", "\\1", phone_label)) %>%
-    left_join(a2p()) %>%
+    left_join(a2p(), by = "cmu") %>%
     mutate(vclass = case_when(cmu == "AH" & stress == 0 ~ "*",
                            vclass %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(vclass, "F"),
                            vclass == "ay" & post_phone_word %in% (phone_features() %>%
