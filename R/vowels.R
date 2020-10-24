@@ -57,7 +57,6 @@ a2p_r <- function(){
 
 
 #' phone features
-#' @importFrom tibble tribble
 #' @export
 phone_features <- function(){
   structure(list(phone = c("AA", "AE", "AH", "AO", "AW", "AX",
@@ -115,4 +114,50 @@ phone_features <- function(){
 }
 
 
+#' basic plt coding
+#' Input must be output of `word_phone_nest`
+#'
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr case_when
+#' @importFrom dplyr filter
+#' @importFrom dplyr pull
+#' @importFrom dplyr left_join
+#' @importFrom dplyr mutate
+#' @export
+basic_plt <- function(df){
 
+  df %>%
+    mutate(cmu = gsub("[0-9]", "", phone_label),
+           stress = gsub(".*([0-9])", "\\1", phone_label)) %>%
+    left_join(a2p()) %>%
+    mutate(plt = case_when(cmu == "AH" & stress == 0 ~ "*",
+                           plt %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(plt, "F"),
+                           plt == "ay" & post_phone_word %in% (phone_features() %>%
+                                                                 filter(cons_voiced == "-") %>%
+                                                                 pull(phone)) ~ "ay0",
+                           cmu == "UW" & pre_phone_word %in% (phone_features() %>%
+                                                                 filter(cons_place == "alveolar") %>%
+                                                                 pull(phone)) ~ "Tuw",
+                           cmu %in% c("IY", "IH") & post_phone_word == "R" ~ "iyr",
+                           cmu %in% c("EY") & post_phone_word == "R" ~ "eyr",
+                           cmu %in% c("AA") & post_phone_word == "R" ~ "ahr",
+                           cmu %in% c("AO", "OW") & post_phone_word == "R" ~ "owr",
+                           cmu %in% c("UH", "UW") & post_phone_word == "R" ~ "uwr",
+                           cmu %in% "AA" & toupper(word_label) %in% c('FATHER', 'FATHER', "FATHER'S",
+                                                                      'MA', "MA'S", 'PA', "PA'S",
+                                                                      'SPA', 'SPAS', "SPA'S",
+                                                                      'CHICAGO', "CHICAGO'S", 'PASTA',
+                                                                      'BRA', 'BRAS', "BRA'S", 'UTAH',
+                                                                      'TACO', 'TACOS', "TACO'S",
+                                                                      'GRANDFATHER', 'GRANDFATHERS',
+                                                                      "GRANDFATHER'S", 'CALM', 'CALMER',
+                                                                      'CALMEST', 'CALMING', 'CALMED',
+                                                                      'CALMS', 'PALM', 'PALMS', 'BALM',
+                                                                      'BALMS', 'ALMOND', 'ALMONDS',
+                                                                      'LAGER', 'SALAMI', 'NIRVANA',
+                                                                      'KARATE', 'AH') ~ "ah",
+                           TRUE ~ plt))%>%
+    select(-stress) -> out
+  return(out)
+}

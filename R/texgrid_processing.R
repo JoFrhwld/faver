@@ -65,8 +65,6 @@ word_phone_nest <- function(tg_df){
            post_phone_phrase = lead(phone_label)) %>%
     ungroup() -> structured
 
-
-
   return(structured)
 }
 
@@ -83,6 +81,7 @@ word_phone_nest <- function(tg_df){
 #' @importFrom purrr simplify
 #' @export
 word_data <- function(df){
+
   df %>%
     group_by(speakerid, word_n) %>%
     nest() %>%
@@ -115,7 +114,6 @@ word_data <- function(df){
 enrich_syl <- function(df){
   safe_syl <- safely(syllabify)
 
-
   df %>%
     group_by(speakerid, word_n) %>%
     nest()  %>%
@@ -129,7 +127,8 @@ enrich_syl <- function(df){
            syl_stress = stress) %>%
     group_by(speakerid, word_n) %>%
     mutate(pre_syl_part = lag(syl_part),
-           post_syl_part = lead(syl_part))->out
+           post_syl_part = lead(syl_part)) %>%
+    ungroup()->out
 
   return(out)
 }

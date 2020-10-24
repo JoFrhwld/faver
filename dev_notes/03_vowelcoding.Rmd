@@ -31,8 +31,92 @@ word_data <- dod_word_phone %>% word_data()
 ```
 
 ```{r}
-dod_word_phone  %>% enrich_s  
+dod_word_phone  %>% enrich_syl()
 
 ```
 
+```{r}
+read_textgrid("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid") %>%
+  word_phone_nest() %>%
+  #enrich_syl() %>%
+  basic_plt() -> full_plt
+```
+
+
+```{r}
+full_plt %>%
+  filter(!is.na(plt)) %>%
+  select(word_label, pre_phone_word, phone_label, post_phone_word, plt) %>% View()
+```
+
+
+
+```{r}
+full_plt %>%
+  select(-stress) %>%
+  group_by(speakerid, word_n) %>%
+  filter(any(plt == "æ")) %>%
+  enrich_syl() -> ae_syll
+
+
+ae_syll %>%
+  group_by(speakerid, word_n) %>%
+  mutate(post_post_phone_word = lead(phone_label, n = 2),
+         new_plt = case_when(plt == "æ" &
+                               toupper(word_label) %in% c('AND', "AN'", 'AM', 'AN', 'THAN',
+                                                 'RAN', 'SWAM', 'BEGAN', 'CAN', 'FAMILY', 
+                                                 'FAMILIES', "FAMILY'S", 'JANUARY', 'ANNUAL',
+                                                 'ANNE', "ANNE'S", 'ANNIE', "ANNIE'S", 
+                                                 'JOANNE', 'GAS', 'GASES', 'EXAM', 'EXAMS', 
+                                                 "EXAM'S", 'ALAS', 'ASPIRIN') ~ "æ*",
+                             plt == "æ" & 
+                               toupper(word_label) %in% c('MAD', 'BAD', 'GLAD', 'MADLY', 
+                                                          'BADLY', 'GLADLY', 'MADDER', 
+                                                          'BADDER', 'GLADDER', 'MADDEST', 
+                                                          'BADDEST', 'GLADDEST', 'MADNESS', 
+                                                          'GLADNESS', 'BADNESS', 'MADHOUSE') ~ "æh",
+                             plt == "æ" &
+                               post_phone_word == "S" & post_post_phone_word %in% c("P", "T", "K") &
+                               !grepl("*AS.IN[G']$", toupper(word_label)) ~ "æ*",
+                             plt == "æ" &
+                               post_phone_word == "L" ~ "æ*",
+                             plt == "æ" & 
+                               post_phone_word %in% c('M', 'N', 'S', 'TH', 'F') &
+                               post_syl_part == "coda"~ "æh",
+                             TRUE ~ plt)) 
+```
+
+
+```{r}
+enriched_df %>%
+  mutate(cmu = gsub("[0-9]", "", phone_label)) %>%
+  left_join(a2p()) %>%
+  mutate(plt = case_when(cmu == "AH" & syl_stress == 0 ~ "*",
+                         plt %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(plt, "F"), 
+                         plt == "ay" & post_phone_word %in% (phone_features() %>% 
+                                                               filter(cons_voiced == "-") %>% 
+                                                               pull(phone)) ~ "ay0",
+                         cmu == "UW" & post_phone_word %in% (phone_features() %>% 
+                                                               filter(cons_place == "alveolar") %>% 
+                                                               pull(phone)) ~ "Tuw",
+                         cmu %in% c("IY", "IH") & post_phone_word == "R" ~ "iyr",
+                         cmu %in% c("EY") & post_phone_word == "R" ~ "eyr",
+                         cmu %in% c("AA") & post_phone_word == "R" ~ "ahr",
+                         cmu %in% c("AO", "OW") & post_phone_word == "R" ~ "owr",
+                         cmu %in% c("UH", "UW") & post_phone_word == "R" ~ "uwr",
+                         cmu %in% "AA" & toupper(word_label) %in% c('FATHER', 'FATHER', "FATHER'S", 
+                                                                     'MA', "MA'S", 'PA', "PA'S", 
+                                                                     'SPA', 'SPAS', "SPA'S",
+                                                                     'CHICAGO', "CHICAGO'S", 'PASTA', 
+                                                                     'BRA', 'BRAS', "BRA'S", 'UTAH', 
+                                                                     'TACO', 'TACOS', "TACO'S",
+                                                                     'GRANDFATHER', 'GRANDFATHERS',
+                                                                     "GRANDFATHER'S", 'CALM', 'CALMER',
+                                                                     'CALMEST', 'CALMING', 'CALMED', 
+                                                                     'CALMS', 'PALM', 'PALMS', 'BALM',
+                                                                     'BALMS', 'ALMOND', 'ALMONDS', 
+                                                                     'LAGER', 'SALAMI', 'NIRVANA', 
+                                                                     'KARATE', 'AH') ~ "ah",
+                         TRUE ~ plt))
+```
 
