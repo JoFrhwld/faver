@@ -61,7 +61,7 @@ phones %>%
 - pros
     - faster
 - cons
-    - will require more work to get to an acceptable dataframe.
+    - will require more work to get to an acceptable dataframe. 
 
 ```{r}
 library(rPraat)
@@ -96,5 +96,59 @@ tg <- TextGrid("../extdata/dod/dod.TextGrid")
 
 ```{r}
 str(tg$`IVR - words`)
+```
+
+
+# rPraat wins
+
+## Doing it by hand
+
+```{r}
+library(rPraat)
+library(tidyverse)
+```
+
+```{r}
+tg <- tg.read("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid")
+```
+
+```{r}
+tg %>%
+  map_dfr(as.data.frame) %>%
+  separate(name, into = c("speakerid", "type"), sep = "\\s+?-\\s+?") %>%
+  group_by(speakerid, type) %>%
+  mutate(n = 1:n()) %>%
+  ungroup()-> tg_df
+```
+
+```{r}
+phones_df <- tg_df %>% filter(grepl("phone", type)) %>%
+                        rename(phone_label = label,
+                               phone_n = n)
+  
+words_df <- tg_df %>% filter(grepl("word", type)) %>%
+                        rename(word_label = label,
+                               word_n = n)
+```
+
+```{r}
+phones_df %>% 
+  left_join(words_df %>% select(speakerid, t1, word_label, word_n)) %>%
+  fill(word_label, word_n) -> structured
+```
+
+## Doing it with the package
+
+```{r}
+tg <- faver::read_textgrid("../extdata/dod/dod.TextGrid")
+```
+```{r}
+faver::word_phone_nest(tg) %>% group_by(speakerid, word_n) %>% 
+  nest()->word_nest
+```
+
+
+```{r}
+word_nest$data[[6]]
 ```
 

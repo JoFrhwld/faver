@@ -1,0 +1,38 @@
+---
+title: "Vowel Code Recoding"
+output: html_notebook
+---
+
+The approach FAVE takes:
+
+- An initial recoding
+- A secondary adjustment
+
+What does this whole procedure require?
+
+- index of the vowel being recoded
+- preceding and following segments within the same word
+- syllabic structure (?)
+- the word (ideally the lexeme)
+
+
+```{r}
+dod_tg <- read_textgrid("../extdata/dod/dod.TextGrid")
+```
+
+```{r}
+dod_word_phone <- word_phone_nest(dod_tg)
+```
+```{r}
+dod_word_phone
+```
+```{r}
+word_data <- dod_word_phone %>% word_data()
+```
+
+```{r}
+dod_word_phone  %>% enrich_s  
+
+```
+
+
