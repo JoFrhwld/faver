@@ -2,7 +2,7 @@
 #' @importFrom tibble tribble
 #' @export
 a2p <- function(){
-  tribble(~cmu, ~plt,
+  tribble(~cmu, ~vclass,
           'AA', 'o',
           'AE', 'æ',
           'AH', 'ʌ',
@@ -26,7 +26,7 @@ a2p <- function(){
 #' @importFrom tibble tribble
 #' @export
 a2p_final <- function(){
-  tribble(~cmu, ~plt,
+  tribble(~cmu, ~vclass,
           'IY', 'iyF',
           'EY', 'eyF',
           'OW', 'owF')->out
@@ -37,7 +37,7 @@ a2p_final <- function(){
 #' @importFrom tibble tribble
 #' @export
 a2p_r <- function(){
-  tribble(~cmu, ~plt,
+  tribble(~cmu, ~vclass,
           'EH', 'e',
           'AE', 'æ',
           'IH', 'iyr',
@@ -114,7 +114,7 @@ phone_features <- function(){
 }
 
 
-#' basic plt coding
+#' basic vclass coding
 #' Input must be output of `word_phone_nest`
 #'
 #'
@@ -125,15 +125,15 @@ phone_features <- function(){
 #' @importFrom dplyr left_join
 #' @importFrom dplyr mutate
 #' @export
-basic_plt <- function(df){
+basic_vclass <- function(df){
 
   df %>%
     mutate(cmu = gsub("[0-9]", "", phone_label),
            stress = gsub(".*([0-9])", "\\1", phone_label)) %>%
     left_join(a2p()) %>%
-    mutate(plt = case_when(cmu == "AH" & stress == 0 ~ "*",
-                           plt %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(plt, "F"),
-                           plt == "ay" & post_phone_word %in% (phone_features() %>%
+    mutate(vclass = case_when(cmu == "AH" & stress == 0 ~ "*",
+                           vclass %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(vclass, "F"),
+                           vclass == "ay" & post_phone_word %in% (phone_features() %>%
                                                                  filter(cons_voiced == "-") %>%
                                                                  pull(phone)) ~ "ay0",
                            cmu == "UW" & pre_phone_word %in% (phone_features() %>%
@@ -157,7 +157,7 @@ basic_plt <- function(df){
                                                                       'BALMS', 'ALMOND', 'ALMONDS',
                                                                       'LAGER', 'SALAMI', 'NIRVANA',
                                                                       'KARATE', 'AH') ~ "ah",
-                           TRUE ~ plt))%>%
+                           TRUE ~ vclass))%>%
     select(-stress) -> out
   return(out)
 }

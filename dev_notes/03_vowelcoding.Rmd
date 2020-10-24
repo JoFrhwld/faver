@@ -39,51 +39,68 @@ dod_word_phone  %>% enrich_syl()
 read_textgrid("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid") %>%
   word_phone_nest() %>%
   #enrich_syl() %>%
-  basic_plt() -> full_plt
+  basic_vclass() -> full_vclass
 ```
 
 
 ```{r}
-full_plt %>%
-  filter(!is.na(plt)) %>%
-  select(word_label, pre_phone_word, phone_label, post_phone_word, plt) %>% View()
+full_vclass %>%
+  filter(!is.na(vclass)) %>%
+  select(word_label, pre_phone_word, phone_label, post_phone_word, vclass) %>% View()
 ```
 
 
 
 ```{r}
-full_plt %>%
+full_vclass %>%
   select(-stress) %>%
   group_by(speakerid, word_n) %>%
-  filter(any(plt == "æ")) %>%
+  filter(any(vclass == "æ")) %>%
   enrich_syl() -> ae_syll
 
 
 ae_syll %>%
   group_by(speakerid, word_n) %>%
   mutate(post_post_phone_word = lead(phone_label, n = 2),
-         new_plt = case_when(plt == "æ" &
+         full_trans = str_c(phone_label, collapse = " "),
+         new_vclass = case_when(vclass == "æ" &
                                toupper(word_label) %in% c('AND', "AN'", 'AM', 'AN', 'THAN',
                                                  'RAN', 'SWAM', 'BEGAN', 'CAN', 'FAMILY', 
                                                  'FAMILIES', "FAMILY'S", 'JANUARY', 'ANNUAL',
                                                  'ANNE', "ANNE'S", 'ANNIE', "ANNIE'S", 
                                                  'JOANNE', 'GAS', 'GASES', 'EXAM', 'EXAMS', 
-                                                 "EXAM'S", 'ALAS', 'ASPIRIN') ~ "æ*",
-                             plt == "æ" & 
+                                                 "EXAM'S", 'ALAS', 'ASPIRIN',
+                                                 'CATHOLIC', 'CATHOLICS', 'CAMERA',
+                                                 'MATH') ~ "æ*",
+                             vclass == "æ" & 
                                toupper(word_label) %in% c('MAD', 'BAD', 'GLAD', 'MADLY', 
                                                           'BADLY', 'GLADLY', 'MADDER', 
                                                           'BADDER', 'GLADDER', 'MADDEST', 
                                                           'BADDEST', 'GLADDEST', 'MADNESS', 
                                                           'GLADNESS', 'BADNESS', 'MADHOUSE') ~ "æh",
-                             plt == "æ" &
+                             vclass == "æ" &
+                               grepl("GRAND", toupper(word_label)) ~ "æh",
+                             vclass == "æ" &
                                post_phone_word == "S" & post_post_phone_word %in% c("P", "T", "K") &
                                !grepl("*AS.IN[G']$", toupper(word_label)) ~ "æ*",
-                             plt == "æ" &
+                             vclass == "æ" &
                                post_phone_word == "L" ~ "æ*",
-                             plt == "æ" & 
+                             vclass == "æ" &
+                               grepl("AE1 (M |N |S |TH |F )(IH0|AH0) (NG|N|Z)$", full_trans) ~ "æh",
+                             vclass == "æ" & 
                                post_phone_word %in% c('M', 'N', 'S', 'TH', 'F') &
                                post_syl_part == "coda"~ "æh",
-                             TRUE ~ plt)) 
+                             TRUE ~ vclass)) ->ae_coding
+
+ae_coding %>%
+  select(speakerid, word_n, phone_n, new_vclass) ->ae_coded
+
+
+full_vclass %>%
+  left_join(ae_coded) %>%
+  mutate(vclass = case_when(!is.na(new_vclass) & new_vclass != vclass ~ new_vclass,
+                         TRUE ~ vclass)) %>%
+  select(-new_vclass) -> ae_coded
 ```
 
 
@@ -91,9 +108,9 @@ ae_syll %>%
 enriched_df %>%
   mutate(cmu = gsub("[0-9]", "", phone_label)) %>%
   left_join(a2p()) %>%
-  mutate(plt = case_when(cmu == "AH" & syl_stress == 0 ~ "*",
-                         plt %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(plt, "F"), 
-                         plt == "ay" & post_phone_word %in% (phone_features() %>% 
+  mutate(vclass = case_when(cmu == "AH" & syl_stress == 0 ~ "*",
+                         vclass %in% c("iy", "ey", "ow") & is.na(post_phone_word) ~ str_c(vclass, "F"), 
+                         vclass == "ay" & post_phone_word %in% (phone_features() %>% 
                                                                filter(cons_voiced == "-") %>% 
                                                                pull(phone)) ~ "ay0",
                          cmu == "UW" & post_phone_word %in% (phone_features() %>% 
@@ -117,6 +134,6 @@ enriched_df %>%
                                                                      'BALMS', 'ALMOND', 'ALMONDS', 
                                                                      'LAGER', 'SALAMI', 'NIRVANA', 
                                                                      'KARATE', 'AH') ~ "ah",
-                         TRUE ~ plt))
+                         TRUE ~ vclass))
 ```
 

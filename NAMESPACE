@@ -3,7 +3,7 @@
 export(a2p)
 export(a2p_final)
 export(a2p_r)
-export(basic_plt)
+export(basic_vclass)
 export(enrich_syl)
 export(phone_features)
 export(read_textgrid)
