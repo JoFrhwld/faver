@@ -17,6 +17,12 @@ What does this whole procedure require?
 
 
 ```{r}
+library(tidyverse)
+library(faver)
+```
+
+
+```{r}
 dod_tg <- read_textgrid("../extdata/dod/dod.TextGrid")
 ```
 
@@ -39,26 +45,17 @@ dod_word_phone  %>% enrich_syl()
 read_textgrid("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid") %>%
   word_phone_nest() %>%
   #enrich_syl() %>%
-  basic_vclass() -> full_vclass
+  basic_vclass() %>% 
+  phila_ae() %>%
+  phila_lowback()-> vowels
 ```
 
 
 ```{r}
-full_vclass %>%
-  filter(!is.na(vclass)) %>%
-  select(word_label, pre_phone_word, phone_label, post_phone_word, vclass) %>% View()
+vowels
 ```
 
-```{r}
-full_vclass %>%
-  phila_ae() -> ae_coded
-```
 
-```{r}
-ae_coded %>%
-  filter(vclass %in% c("æ", "æ*", "æh")) %>% 
-  count(vclass, word_label) 
-```
 
 
 

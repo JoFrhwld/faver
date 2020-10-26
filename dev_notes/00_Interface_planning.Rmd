@@ -1,0 +1,88 @@
+---
+title: "Processing Plan"
+output: html_notebook
+---
+
+```
+fave_extract(df, textgrids = /tgcolumn/,
+                 wavs = /wavcolumn/,
+                 max_formant = /max_formant/,
+                 textgrid_processing_worflow = textgrid_fave_northamerica(),
+                 formant_estimation_workflow = formant_fave_default(),
+                 mean_covs = NULL
+                 )
+```
+
+most_likely
+```
+textgrid_fave_northamerica <- function(df){
+  df %>%
+    word_phone_nest() %>%
+    #enrich_syl() %>%
+    basic_vclass() ->out
+  
+  return(out)
+}
+```
+
+```
+textgrid_fave_phila <- function(df){
+  df %>%
+    word_phone_nest() %>%
+    #enrich_syl() %>%
+    basic_vclass() %>% 
+    phila_ae() %>%
+    phila_lowback()->out
+  
+  return(out)
+}
+```
+
+ideally
+```
+texgrid_fave_default <- compose_workflow(word_phone_nest() %>%
+                                           #enrich_syl() %>%
+                                           basic_vclass() %>% 
+                                           phila_ae() %>%
+                                           phila_lowback()
+                                         )
+                                           
+
+```
+
+```
+formant_fave_default <- function(df, wav_path, 
+                                   min_dur = 0.05, only_measure_stress = T,
+                                   mean_covs = anae_mean_cov){
+  setup_extract(df, wav_path, ...) %>%
+    estimate_default_meancov() %>%
+    estimate_speaker_meancov()->out
+  
+  return(out)
+}
+```
+
+```
+formant_iterate <- function(df, wav_path, ...){
+
+  setup_extract(df, wav_path, ...) %>%
+    estimate_default_meancov() %>%
+    estimate_speaker_iterate_meancov()->out
+  
+  return(out)
+}
+```
+
+```
+formant_community <- function(df, wav_path, ...){
+
+  setup_extract(df, wav_path, ...) %>%
+    estimate_default_meancov() %>%
+    estimate_speaker_meancov() %>%
+    estimate_communuty_meancov() -> out
+  
+  return(out)
+}
+```
+
+
