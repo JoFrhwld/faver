@@ -142,26 +142,82 @@ phila_lowback <- function(df){
   return(out)
 }
 
-
-#' Incorporate Recoding
+#' Lexical Fixing
 #'
-#' incorporate recoding of new_vclass into vclass
+#' input expects basic vclass coding
+#'
+#' todo: check for vclass column. Throw error otherwise
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr select
-#' @importFrom dplyr left_join
+#' @importFrom dplyr group_by
+#' @importFrom dplyr ungroup
 #' @importFrom dplyr mutate
 #' @importFrom dplyr case_when
-#' @importFrom dplyr select
-incorporate_recoding <- function(recoded, df){
-  recoded %>%
-    select(speakerid, word_n, phone_n, new_vclass) -> recoded
+#' @export
+phila_lexfix <- function(df){
 
   df %>%
-    left_join(recoded, by = c("speakerid", "phone_n", "word_n")) %>%
-    mutate(vclass = case_when(!is.na(new_vclass) & new_vclass != vclass ~ new_vclass,
-                              TRUE ~ vclass)) %>%
-    select(-new_vclass) -> out
+    group_by(speakerid, word_n) %>%
+      mutate(new_vclass = case_when(vclass == "o" &
+                                      grepl("MARIO", toupper(word_label)) ~ "æ",
+                                    grepl("AE", phone_label) &
+                                      grepl("LANZA", toupper(word_label)) ~ "o",
+                                    grepl("AE", phone_label) &
+                                      grepl("KEPT", toupper(word_label)) ~ "e",
+                                    grepl("AE", phone_label) &
+                                      grepl("CATCH", toupper(word_label)) ~ "e",
+                                    grepl("UW", phone_label) &
+                                      grepl("THROUGH", toupper(word_label)) ~ "Tuw"))%>%
+    ungroup() %>%
+    incorporate_recoding(df) -> out
+
+  return(out)
+}
+
+#' iw
+#'
+#' input expects basic vclass coding
+#'
+#' todo: check for vclass column. Throw error otherwise
+#'
+#' @importFrom magrittr %>%
+#' @importFrom dplyr group_by
+#' @importFrom dplyr ungroup
+#' @importFrom dplyr mutate
+#' @importFrom dplyr case_when
+#' @export
+phila_iw <- function(df){
+
+  df %>%
+    group_by(speakerid, word_n) %>%
+    filter(any(grepl("UW1", phone_label))) %>%
+    mutate(new_vclass = case_when(phone_label == "UW1" &
+                                    lag(phone_label) == "Y" ~ "iw",
+                                  phone_label == "UW1" &
+                                    grepl("EW", toupper(word_label))~"iw",
+                                  phone_label == "UW1" &
+                                    lag(phone_label %in% c('T', 'D', 'N', 'L', 'S'))&
+                                    grepl("[TDNLS]U", toupper(word_label))~ "iw")) %>%
+    ungroup() %>%
+    incorporate_recoding(df) -> out
+
+  return(out)
+}
+
+#' Phila Workflow
+#'
+#' A workflow for pre-processing a textgrid to use the Philadelphia vowel system
+#'
+#' @importFrom magrittr %>%
+phila_workflow <- function(tg_path){
+
+  read_textgrid(tg_path)) %>%
+    word_phone_nest() %>%
+    basic_vclass() %>%
+    phila_ae() %>%
+    phila_lowback() %>%
+    phila_lexfix() %>%
+    phila_iw()-> out
 
   return(out)
 }

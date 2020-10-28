@@ -47,13 +47,12 @@ read_textgrid("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.Tex
   #enrich_syl() %>%
   basic_vclass() %>% 
   phila_ae() %>%
-  phila_lowback()-> vowels
+  phila_lowback() %>%
+  phila_lexfix()
+  phila_iw()-> vowels
 ```
 
 
-```{r}
-vowels
-```
 
 
 

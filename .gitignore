@@ -5,3 +5,4 @@
 *.wav
 .DS_Store
 *.nb.html
+inst/doc
