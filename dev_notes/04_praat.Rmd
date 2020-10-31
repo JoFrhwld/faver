@@ -1,0 +1,14 @@
+---
+title: "Talking to Praat"
+output: html_notebook
+---
+
+gotta talk to praat somehow
+
+
+
+```{r}
+
+```
+
+str_c(vowelWavFile, nFormants, maxFormant, windowSize, preEmphasis, "burg")

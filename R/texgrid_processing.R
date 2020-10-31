@@ -102,6 +102,8 @@ word_data <- function(df){
 #'
 #' @importFrom syllabifyr syllabify
 #' @importFrom magrittr %>%
+#' @importFrom tidyr nest
+#' @importFrom tidyr unnest
 #' @importFrom dplyr group_by
 #' @importFrom dplyr mutate
 #' @importFrom dplyr lead

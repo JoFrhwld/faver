@@ -53,9 +53,16 @@ read_textgrid("../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.Tex
 ```
 
 
+testing
 
+```{r}
+phila_workflow("../extdata/dod/dod.TextGrid")
+```
 
-
+```{r}
+tibble::tibble(textgrids = c("../extdata/dod/dod.TextGrid", "../../aw_timewarping/1_data/0_audio_textgrid/PH06-2-1-AB-Jean.TextGrid"))%>%
+  mutate(tg = map(textgrids, phila_workflow))
+```
 
 
 

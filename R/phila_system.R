@@ -105,6 +105,7 @@ phila_marry <- function(df){
 #' @importFrom dplyr case_when
 #' @importFrom dplyr lead
 #' @importFrom dplyr left_join
+#' @importFrom dplyr bind_rows
 #' @importFrom stringr str_c
 #' @export
 phila_lowback <- function(df){
@@ -209,9 +210,10 @@ phila_iw <- function(df){
 #' A workflow for pre-processing a textgrid to use the Philadelphia vowel system
 #'
 #' @importFrom magrittr %>%
+#' @export
 phila_workflow <- function(tg_path){
 
-  read_textgrid(tg_path)) %>%
+  read_textgrid(tg_path) %>%
     word_phone_nest() %>%
     basic_vclass() %>%
     phila_ae() %>%
